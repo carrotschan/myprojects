@@ -1,0 +1,117 @@
+'''
+LIBRARIES USED:
+1. OpenCV: For capturing video feed and image processing.   
+2. Mediapipe: For hand landmark detection and tracking.
+3. Math: For mathematical calculations, such as distance and angle calculations.
+From mediapipe.tasks.python import python: For using the base options and hand landmarker options from Mediapipe.
+From mediapipe.tasks.python import vision: For using the hand landmarker model from Mediapipe.
+'''
+import cv2
+import mediapipe as mp
+import math
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+#Get the angle between three points A, B, and C
+def get_angle(a, b, c):
+    # Find absolute angles from B to A and B to C
+    ang_a = math.atan2(a[1] - b[1], a[0] - b[0])
+    ang_c = math.atan2(c[1] - b[1], c[0] - b[0])
+    
+    # Get the absolute difference in degrees
+    angle = math.degrees(abs(ang_a - ang_c))
+    return angle
+
+# Initialize the hand landmarker model with specified options
+base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
+options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=4, min_hand_detection_confidence = 0.8)
+detector = vision.HandLandmarker.create_from_options(options)
+
+# Define a dictionary to map finger names to their corresponding landmark indices, and a list of colors and bounding boxes for drawing
+fingerIdxDictionary = {"Thumb": [1 , 2, 3, 4], "Index": [5,6,7,8], "Middle": [9,10,11,12], "Ring": [13,14,15,16], "Pinky": [17,18,19,20]}
+listcolours = [(23, 147, 211), (184, 52, 96), (45, 201, 113), (242, 180, 39)]
+padding = 20
+
+# Start capturing video from the default camera (index 0)
+cap = cv2.VideoCapture(0)
+
+'''
+Main loop to continuously read frames from the camera, process them for hand detection, and display the results.
+'''
+while True:
+    success, frame = cap.read()
+    if success == False:
+        continue
+    h, w, l = frame.shape
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)    
+    detection_result = detector.detect(mp_image)
+    chosen_colour_pos = 0
+
+    # Loop through each detected hand and process its landmarks
+    for hand in detection_result.hand_landmarks:
+        maxx = -1000000
+        maxy = -100000
+        minx = 1000000
+        miny = 100000
+        chosen_colour = listcolours[chosen_colour_pos]
+        chosen_colour_pos += 1
+        raised_count = 0
+        indexTip = hand[8]           
+        thumbTip = hand[4]
+
+        ix, iy = indexTip.x * w, indexTip.y * h
+        tx, ty = thumbTip.x * w, thumbTip.y * h
+
+        dist = round(math.dist((ix, iy), (tx, ty)), 2)
+        cv2.line(frame, (int(ix), int(iy)), (int(tx), int(ty)), chosen_colour, 2)
+
+        # Apply Pythagorean theorem via math.hypot
+        print(f"The distance between points is: {dist} pixels")
+        for fingerName, IdxPos in fingerIdxDictionary.items():
+            b = hand[IdxPos[0]]
+            m1 = hand[IdxPos[1]]
+            m2 = hand[IdxPos[2]]
+            t = hand[IdxPos[3]]
+            bP = (int(b.x * w), int(b.y * h))
+            m1P = (int(m1.x * w), int(m1.y * h))
+            m2P = (int(m2.x * w), int(m2.y * h))
+            tP = (int(t.x * w), int(t.y * h))
+            ang1 = get_angle(bP, m1P, m2P)
+            ang2 = get_angle(m1P, m2P, tP)
+            if 160 <  ang1 < 200 and 160 < ang2 < 200:
+                is_raised = 1
+                print(f"{fingerName} is raised")
+            else:
+                print(f"{fingerName} is not raised")
+                is_raised = 0
+            if is_raised == True:
+                raised_count += 1
+
+        # Draw circles on each landmark and update the bounding box coordinates, then draw the bounding box and display the count of raised fingers
+        for landmark in hand:
+            nx = landmark.x
+            ny = landmark.y
+            ax = int(nx*w)
+            ay = int(ny*h)
+            cv2.putText(frame, "hello", (50,50),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255,0), 2)
+            cv2.circle(frame, (ax, ay), 10, chosen_colour, -1)
+            if ax > maxx:
+                maxx = ax
+
+            if ay > maxy:
+                maxy = ay
+
+            if ax < minx:
+                minx = ax
+
+            if ay < miny:
+                miny = ay
+
+        cv2.rectangle(frame, (maxx + padding, maxy + padding), (minx - padding, miny - padding), chosen_colour, 2)
+        cv2.rectangle(frame, (minx - padding + 30 , miny - padding), (minx - padding, miny - padding - 15), chosen_colour, -2)
+        cv2.putText(frame, f"{raised_count} fingers are raised", (minx - padding, miny - padding), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,0))
+
+
+    #print(detection_result)
+    cv2.imshow("rawfeed", frame)
+    cv2.waitKey(1)
