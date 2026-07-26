@@ -17,7 +17,8 @@ An interactive Python application built with **OpenCV** and **NumPy** that allow
 Ensure you have Python installed, then install the required dependencies using pip:
 
 ```cmd
-pip install numpy opencv-python```
+pip install numpy opencv-python
+```
 
 ## Controls & Shortcuts
 
