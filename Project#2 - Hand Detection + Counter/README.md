@@ -40,11 +40,7 @@ python hand_tracker.py
 
 
 ## Features & Logic
-
-    * Multi-hand Support: Configured to track up to 4 hands simultaneously (num_hands=4) with high-confidence filtering (min_hand_detection_confidence = 0.8).
-
-    * Distance Tracking: Calculates and visualizes the pixel distance between the index fingertip and thumb tip with a dynamic connecting line.
-
-    * Finger State Detection: Measures angles between finger joints to accurately determine if individual fingers (Thumb, Index, Middle, Ring, Pinky) are raised.
-
-    * Visual Bounding Boxes & UI: Automatically maps landmarks, creates custom colored bounding boxes per hand, and displays a live count of raised fingers.
+* Multi-hand Support: Configured to track up to 4 hands simultaneously (num_hands=4) with high-confidence filtering (min_hand_detection_confidence = 0.8).
+* Distance Tracking: Calculates and visualizes the pixel distance between the index fingertip and thumb tip with a dynamic connecting line.
+* Finger State Detection: Measures angles between finger joints to accurately determine if individual fingers (Thumb, Index, Middle, Ring, Pinky) are raised.
+* Visual Bounding Boxes & UI: Automatically maps landmarks, creates custom colored bounding boxes per hand, and displays a live count of raised fingers.
