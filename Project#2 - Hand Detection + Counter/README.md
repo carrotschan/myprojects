@@ -34,9 +34,9 @@ install opencv-python mediapipe numpy
 ## How to Run
 
 Save your script as hand_tracker.py, ensure the hand_landmarker.task file is in the same folder, and execute the script from your terminal:
-DOS
-
+```DOS
 python hand_tracker.py
+```
 
 
 ## Features & Logic
