@@ -28,7 +28,8 @@ Install the required dependencies using pip:
 cmd
 pip install opencv-python mediapipe numpy
 
-install opencv-python mediapipe numpy'''
+install opencv-python mediapipe numpy
+```
 
 ## How to Run
 
